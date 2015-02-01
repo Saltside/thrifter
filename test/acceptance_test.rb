@@ -190,6 +190,26 @@ class AcceptanceTest < MiniTest::Unit::TestCase
     assert_match /testing/, result.message, 'Middleware not called'
   end
 
+  def test_implementation_maybe_given_at_instantation_time
+    implementation = stub echo: :stubbed_response
+
+    client = Thrifter.build TestClient
+    client.config.uri = uri
+
+    thrifter = client.new implementation
+    assert_equal :stubbed_response, thrifter.echo(:request)
+  end
+
+  def test_does_not_require_uri_when_providing_an_implementation
+    implementation = stub echo: :stubbed_response
+
+    client = Thrifter.build TestClient
+    client.config.uri = nil
+
+    thrifter = client.new implementation
+    assert_equal :stubbed_response, thrifter.echo(:request)
+  end
+
   def test_close_the_transport_on_successful_rpc
     transport = mock
     client = Thrifter.build TestClient

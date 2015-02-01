@@ -84,6 +84,14 @@ module Thrifter
       end
     end
 
+    class DirectDispatcher
+      include Concord.new(:app, :client)
+
+      def call(rpc)
+        client.send rpc.name, *rpc.args
+      end
+    end
+
     class << self
       extend Forwardable
 
@@ -115,12 +123,14 @@ module Thrifter
       end
     end
 
-    def initialize
-      fail ArgumentError, 'config.uri not set!' unless config.uri
+    def initialize(client = nil)
+      if client.nil?
+        fail ArgumentError, 'config.uri not set!' unless config.uri
 
-      uri = URI(config.uri)
+        uri = URI(config.uri)
 
-      fail ArgumentError, 'URI did not contain port' unless uri.port
+        fail ArgumentError, 'URI did not contain port' unless uri.port
+      end
 
       @pool = ConnectionPool.new size: config.pool_size.to_i, timeout: config.pool_timeout.to_f do
         stack = MiddlewareStack.new
@@ -132,11 +142,15 @@ module Thrifter
         # application may have configured.
         stack.use StatsdMiddleware, config.statsd
 
-        socket = Thrift::Socket.new uri.host, uri.port, config.rpc_timeout.to_f
-        transport = config.transport.new socket
-        protocol = config.protocol.new transport
+        if client.nil?
+          socket = Thrift::Socket.new uri.host, uri.port, config.rpc_timeout.to_f
+          transport = config.transport.new socket
+          protocol = config.protocol.new transport
 
-        stack.use Dispatcher, transport, client_class.new(protocol)
+          stack.use Dispatcher, transport, client_class.new(protocol)
+        else
+          stack.use DirectDispatcher, client
+        end
 
         stack.finalize!
       end
