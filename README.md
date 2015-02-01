@@ -7,7 +7,7 @@ production uses. It's most important features are:
 * Safe for use in long running processes
 * Simple RPC queuing
 * Retry support
-* Proper timeout's by default
+* Proper timeouts by default
 * Metrics
 * Better error handling
 * Middleware
