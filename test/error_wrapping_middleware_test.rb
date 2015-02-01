@@ -17,7 +17,7 @@ class ErrorWrappingMiddlewareTest < MiniTest::Unit::TestCase
 
   def test_wraps_known_exceptions
     app = stub
-    app.stubs(:call).with(rpc).raises(known_errors.sample)
+    app.stubs(:call).with(rpc).raises(known_errors.first)
 
     middleware = Thrifter::ErrorWrappingMiddleware.new app
 
