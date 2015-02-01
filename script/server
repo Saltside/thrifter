@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+
+$stdout.sync = true
+$stderr.sync = true
+
+require 'bundler/setup'
+require 'thrift'
+
+root = File.expand_path '../..', __FILE__
+$LOAD_PATH << "#{root}/vendor/gen-rb"
+
+require 'test_service'
+
+puts 'Starting on port 9090.....'
+
+class Handler
+  def echo(message)
+    puts "echo --#{message.inspect}"
+    message
+  end
+
+  def onewayEcho(message)
+    puts "onewayEcho -- #{message.inspect}"
+    # nada
+  end
+end
+
+processor = TestService::Processor.new Handler.new
+transport = Thrift::ServerSocket.new 9090
+transport_factory = Thrift::FramedTransportFactory.new
+server = Thrift::ThreadPoolServer.new processor, transport, transport_factory, nil, threads = 10
+server.serve

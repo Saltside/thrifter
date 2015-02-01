@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+
+$stdout.sync = true
+$stderr.sync = true
+
+uri = ARGV[0]
+
+if uri.nil?
+  abort 'USAGE: monkey-client HOST:PORT'
+end
+
+require 'bundler/setup'
+require 'thrifter'
+require 'thrifter/queueing'
+require 'securerandom'
+
+require 'eventmachine'
+
+root = File.expand_path '../..', __FILE__
+$LOAD_PATH << "#{root}/vendor/gen-rb"
+
+require 'test_service'
+
+class MonkeyClient < Thrifter.build(TestService::Client)
+  include Thrifter::Retry
+
+  config.uri = "tcp://#{ARGV[0]}"
+end
+
+client = MonkeyClient.new
+
+EM.run do
+  rand(1..5).times do
+    EM.add_periodic_timer rand(0.1..2.0) do
+      client.echo(TestMessage.new(message: "Echo #{SecureRandom.hex(16)}"))
+    end
+  end
+
+  rand(1..5).times do
+    EM.add_periodic_timer rand(0.1..2.0) do
+      client.onewayEcho(TestMessage.new(message: "Oneway: #{SecureRandom.hex(16)}"))
+    end
+  end
+
+  rand(1..5).times do
+    EM.add_periodic_timer rand(0.1..2.0) do
+      client.with_retry.echo(TestMessage.new(message: 'retried echo'))
+    end
+  end
+
+  rand(1..5).times do
+    EM.add_periodic_timer rand(0.1..2.0) do
+      client.with_retry.onewayEcho(TestMessage.new(message: 'retried oneway echo'))
+    end
+  end
+
+  EM.add_timer 30 do
+    puts "Good monkey...here's your banana."
+    EM.stop
+  end
+end
