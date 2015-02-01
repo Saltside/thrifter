@@ -126,12 +126,12 @@ module Thrifter
     end
 
     def initialize(client = nil)
-      if client.nil?
+      if !client
         fail ArgumentError, 'config.uri not set!' unless config.uri
 
-        uri = URI(config.uri)
+        @uri = URI(config.uri)
 
-        fail ArgumentError, 'URI did not contain port' unless uri.port
+        fail ArgumentError, 'URI did not contain port' unless @uri.port
       end
 
       @pool = ConnectionPool.new size: config.pool_size.to_i, timeout: config.pool_timeout.to_f do
@@ -144,14 +144,14 @@ module Thrifter
         # application may have configured.
         stack.use Metrics, config.statsd
 
-        if client.nil?
-          socket = Thrift::Socket.new uri.host, uri.port, config.rpc_timeout.to_f
+        if client
+          stack.use DirectDispatcher, client
+        else
+          socket = Thrift::Socket.new @uri.host, @uri.port, config.rpc_timeout.to_f
           transport = config.transport.new socket
           protocol = config.protocol.new transport
 
           stack.use Dispatcher, transport, client_class.new(protocol)
-        else
-          stack.use DirectDispatcher, client
         end
 
         stack.finalize!
