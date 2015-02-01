@@ -249,6 +249,28 @@ end
 Note, `Thrifter` will still count individual errors as described the metrics
 section.
 
+### Pinging
+
+Components in a system may need to inquire if other systems are
+available before continuing. `Thrifer::Ping` is just that.
+`Thrifter::Ping` assumes the service has a `ping` RPC. If your
+service does not have one (or is named differently) simply implement
+the `ping` method on the class. Any successful response will count as
+up, anything else will not.
+
+```ruby
+class MyService < Thrifer.build(MyService::Client)
+  include Thrifer::Ping
+
+  # Define a ping method if the service does not have one
+  def ping
+    my_other_rpc
+  end
+end
+
+# my_service.up? # => true
+```
+
 ## Contributing
 
 1. Fork it ( https://github.com/saltside/thrifter/fork )
