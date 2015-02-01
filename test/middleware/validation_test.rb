@@ -1,6 +1,6 @@
-require_relative './test_helper'
+require_relative '../test_helper'
 
-class ValidationMiddlewareTest < MiniTest::Unit::TestCase
+class ValidationTest < MiniTest::Unit::TestCase
   attr_reader :rpc, :invalid_struct, :valid_struct
 
   def setup
@@ -17,7 +17,7 @@ class ValidationMiddlewareTest < MiniTest::Unit::TestCase
 
     client = stub call: valid_struct
 
-    middleware = Thrifter::ValidationMiddleware.new client
+    middleware = Thrifter::Validation.new client
 
     assert_raises Thrifter::ValidationError do
       middleware.call rpc
@@ -29,7 +29,7 @@ class ValidationMiddlewareTest < MiniTest::Unit::TestCase
 
     client = stub call: valid_struct
 
-    middleware = Thrifter::ValidationMiddleware.new client
+    middleware = Thrifter::Validation.new client
 
     assert_equal valid_struct, middleware.call(rpc)
   end
@@ -39,7 +39,7 @@ class ValidationMiddlewareTest < MiniTest::Unit::TestCase
 
     client = stub call: invalid_struct
 
-    middleware = Thrifter::ValidationMiddleware.new client
+    middleware = Thrifter::Validation.new client
 
     assert_raises Thrifter::ValidationError do
       middleware.call rpc
@@ -51,7 +51,7 @@ class ValidationMiddlewareTest < MiniTest::Unit::TestCase
 
     client = stub call: [ 1, 2 ]
 
-    middleware = Thrifter::ValidationMiddleware.new client
+    middleware = Thrifter::Validation.new client
     assert_equal [ 1,2 ], middleware.call(rpc)
   end
 end

@@ -142,7 +142,7 @@ module Thrifter
         # Insert metrics here so metrics are as close to the network
         # as possible. This excludes time in any middleware an
         # application may have configured.
-        stack.use StatsdMiddleware, config.statsd
+        stack.use Metrics, config.statsd
 
         if client.nil?
           socket = Thrift::Socket.new uri.host, uri.port, config.rpc_timeout.to_f
@@ -176,9 +176,9 @@ module Thrifter
   end
 end
 
-require_relative 'thrifter/ping'
-require_relative 'thrifter/retry'
+require_relative 'thrifter/extensions/ping'
+require_relative 'thrifter/extensions/retriable'
 
-require_relative 'thrifter/error_wrapping_middleware'
-require_relative 'thrifter/statsd_middleware'
-require_relative 'thrifter/validation_middleware'
+require_relative 'thrifter/middleware/error_wrapping'
+require_relative 'thrifter/middleware/validation'
+require_relative 'thrifter/middleware/metrics'

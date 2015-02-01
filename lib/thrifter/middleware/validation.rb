@@ -2,7 +2,8 @@ module Thrifter
   ValidationError = Tnt.boom do |rpc, ex|
     "Invalid data in RPC #{rpc.name}! #{ex.message}"
   end
-  class ValidationMiddleware
+
+  class Validation
     include Concord.new(:app)
 
     def call(rpc)

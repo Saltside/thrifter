@@ -81,37 +81,19 @@ class MyClient < Thrifer.build(MyService::Client)
   config.uri = 'tcp://foo:2383'
 end
 
-#The common block form is supported as well
+# The common block form is supported as well
 MyClient.configure do |config|
   # ... same as above
 end
 ```
 
-### RPC Metrics with Statsd
+### Extensions
 
-Statsd metrics are **opt-in**. By default, `Thrifter` sets the statsd
-client to a null implementation. If you want metrics, set
-`config.statsd` to an object that implements the [statsd-ruby][]
-interface. `Thrifter` emits the following metrics:
+Extensions add functionality to the client itself. They do not effect
+the request/response cycle in anyway. `Thrifter` includes a few
+extensions by default. This section covers each included extension.
 
-* time on each rpc calls
-* number of `Thrift::TransportException`
-* number of `Thrift::ProtocolExeption`
-* number of `Thrift::ApplicationExeption`
-* number of `Timeout::Error`
-* number of generic errors (e.g. none of the above known errors)
-
-It's recommended that the `statsd` object do namespacing
-(statsd-ruby has it built in). This ensures client metrics don't
-get intermingled with wider application metrics. Here's an example:
-
-```ruby
-ServiceClient = Thrifter.build(MyService::Client)
-# Now in production.rb
-ServiceClient.config.statsd = Statsd.new namespace: 'my_service'
-```
-
-### RPC Queuing
+#### Queuing
 
 Certain systems may need to queue RPCs to other systems. This is only
 useful for `void` RPCs or for when an outside system may be flaky.
@@ -119,8 +101,13 @@ Assume `MyService` has a `logStats` RPC. Your application is producing
 stats that should make it upstream, but there are intermitent network
 problems effeciting stats collection. Include `Thrift::Queueing` and
 any RPC will automatically be sent to sidekiq for eventual processing.
+`sidekiq` must be available. This is an **opt-in** dependency, of if
+you want this funtionality, add `sidekiq` and
+`sidekiq-thrift_arguments` to your `Gemfile`.
 
 ```ruby
+require 'thrifter/extensions/queueing'
+
 class ServiceClient < Thrifter.build(MyService::Client)
   include Thrifter::Queuing
 end
@@ -144,7 +131,7 @@ end
 All RPCs will be sent to the `thrift` sidekiq queue. They will follow
 default sidekiq retry backoff and the like.
 
-### RPC Retrying
+#### Retry Support
 
 Systems have syncrhonous RPCs. Unfortunately sometimes these don't
 work for whatever reason. It's good practice to retry these RPCs
@@ -178,13 +165,40 @@ end
 Look into something like [retriable][] if you want a more robust
 solution for different use cases.
 
+#### Pinging
+
+Components in a system may need to inquire if other systems are
+available before continuing. `Thrifer::Ping` is just that.
+`Thrifter::Ping` assumes the service has a `ping` RPC. If your
+service does not have one (or is named differently) simply implement
+the `ping` method on the class. Any successful response will count as
+up, anything else will not.
+
+```ruby
+class MyService < Thrifer.build(MyService::Client)
+  include Thrifer::Ping
+
+  # Define a ping method if the service does not have one
+  def ping
+    my_other_rpc
+  end
+end
+
+# my_service.up? # => true
+```
+
 ### Middleware
 
 The middleware approach is great for providing a flexible extension
 points to hook into the RPC process. `Thrifter::Client` provides a
 middleware implementation to common to many other ruby libraries.
-Middleware can only be customized at the class level. This ensures
-middleware applies when used in extensions.
+Unlike extensions, middleware modify the request/response cycle. They
+do not modify the client class directly. `Thrifter` includes a few
+helpful middlware which are documented below.
+
+#### Using Middleware
+
+Here's the most simple middlware example:
 
 ```ruby
 class MyClient < Thrifter.build(MyService::Client)
@@ -218,7 +232,31 @@ class LoggingMiddleware
 end
 ```
 
-### Error Wrapping
+#### Metrics
+
+Statsd metrics are **opt-in**. By default, `Thrifter` sets the statsd
+client to a null implementation. If you want metrics, set
+`config.statsd` to an object that implements the [statsd-ruby][]
+interface. `Thrifter` emits the following metrics:
+
+* time on each rpc calls
+* number of `Thrift::TransportException`
+* number of `Thrift::ProtocolExeption`
+* number of `Thrift::ApplicationExeption`
+* number of `Timeout::Error`
+* number of generic errors (e.g. none of the above known errors)
+
+It's recommended that the `statsd` object do namespacing
+(statsd-ruby has it built in). This ensures client metrics don't
+get intermingled with wider application metrics. Here's an example:
+
+```ruby
+ServiceClient = Thrifter.build(MyService::Client)
+# Now in production.rb
+ServiceClient.config.statsd = Statsd.new namespace: 'my_service'
+```
+
+#### Error Wrapping
 
 A lot of things can go wrong in the thrift stack. This means the
 caller may need to deal with a large amount of different exceptions.
@@ -249,29 +287,7 @@ end
 Note, `Thrifter` will still count individual errors as described in
 the metrics section.
 
-### Pinging
-
-Components in a system may need to inquire if other systems are
-available before continuing. `Thrifer::Ping` is just that.
-`Thrifter::Ping` assumes the service has a `ping` RPC. If your
-service does not have one (or is named differently) simply implement
-the `ping` method on the class. Any successful response will count as
-up, anything else will not.
-
-```ruby
-class MyService < Thrifer.build(MyService::Client)
-  include Thrifer::Ping
-
-  # Define a ping method if the service does not have one
-  def ping
-    my_other_rpc
-  end
-end
-
-# my_service.up? # => true
-```
-
-### Protocol Validation
+#### Protocol Validation
 
 Thrift requires that client & server communicate with the exact things
 specified in the protocol. Unfortunately ruby does not prevent us from

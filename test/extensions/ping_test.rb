@@ -1,4 +1,4 @@
-require_relative './test_helper'
+require_relative '../test_helper'
 
 class PingTest < MiniTest::Unit::TestCase
   def test_returns_false_if_anything_goes_wrong
