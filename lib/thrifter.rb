@@ -1,11 +1,13 @@
 require 'thrifter/version'
 
 require 'forwardable'
+require 'delegate'
 require 'uri'
 require 'tnt'
 require 'concord'
 require 'thrift'
 require 'thrift-base64'
+require 'thrift-validator'
 require 'middleware'
 require 'connection_pool'
 
@@ -174,7 +176,9 @@ module Thrifter
   end
 end
 
-require_relative 'thrifter/statsd_middleware'
 require_relative 'thrifter/ping'
-require_relative 'thrifter/error_wrapping_middleware'
 require_relative 'thrifter/retry'
+
+require_relative 'thrifter/error_wrapping_middleware'
+require_relative 'thrifter/statsd_middleware'
+require_relative 'thrifter/validation_middleware'

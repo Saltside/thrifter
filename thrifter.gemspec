@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "thrift"
   spec.add_dependency "thrift-base64"
+  spec.add_dependency "thrift-validator"
   spec.add_dependency "statsd-ruby"
   spec.add_dependency "concord"
   spec.add_dependency "middleware"

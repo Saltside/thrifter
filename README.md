@@ -271,6 +271,24 @@ end
 # my_service.up? # => true
 ```
 
+### Protocol Validation
+
+Thrift requires that client & server communicate with the exact things
+specified in the protocol. Unfortunately ruby does not prevent us from
+making mistakes. It's possible to forget setting required members or
+assigning symbol instead of a string. Luckily ruby's dynamic traits
+make it possible to implement compiler like validation. `Thrifter`
+includes a middlware that will checkout incoming & outgoing objects so
+that they're valid protocol message. [thrift-validator][] does all the
+heavy lifing here. Use `Thrifter::Validation` in the test
+environment to make sure things are correct. Here's an example.
+
+```ruby
+class MyService < Thrifter.build(MyService::Client)
+  use Thrifter::Validation
+end
+```
+
 ## Contributing
 
 1. Fork it ( https://github.com/saltside/thrifter/fork )
