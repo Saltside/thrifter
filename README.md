@@ -30,52 +30,60 @@ Or install it yourself as:
 
 ## Usage
 
-`Thrifter::Client` provides the exact same interface as the standard
-`Thrift::Client`. The following functionality is always included:
-
-* Thread saftey
-* Self healing connections
-* Exception handling
-
-Another functionality is included via modules.
+`Thrifer` is a factory (similar to `DelegateClass`) for building
+client classes. It can be used like `DelegateClass` or like `Struct`.
+The result is subclasses of `Thrifter::Client`. The classes use the
+same methods to make RPCs. For example if the thrift service has a
+`fooBar` RPC, the generated class has a `fooBar` method to invoke the
+RPC. Here are some examples.
 
 ```ruby
+# Struct style
 ServiceClient = Thrifter.build(MyService::Client)
+
+The struct style take a block as well
+ServiceClient = Thrifer.build(MyService::Client) do
+  def custom_method(args)
+    # something something
+  end
+end
+
+# Delegate class style (easiest to add abstractions)
+class MyServiceClient < Thrifter.build(MyService::Client)
+  def custom_method(args)
+    # something something
+  end
+end
 ```
-
-From there, `ServiceClient` is a normal class that may be instantiated
-with these options:
-
-* `:transport` - defaults to `Thrift::FramedTransport`
-* `:protocol` - defaults to `Thrift::BinaryProtocol`
-* `:pool_size` - number of connections to keep in the pool
-* `:pool_timeout` - timeout to retrieve a new connection from the pool
-* `:rpc_timeout` - timeout for a RPC request on the given service
 
 ### Configuration
 
 `Thrifter` uses a configuration object on each class to track
 dependent objects. Configured objects are injected into each instance.
-This ensures `Thrifer::Client` instances behave the same regardless
-where they are instantiated (and also supports extensions like
-`Thrifter::Queueing`. Conifugration can be set at the class level and
-customized at the instance level. For example, you can set the
-`pool_size` on the class but provide a different value at instantation
-time. All the settings mentioned in the previous section are available
-on the `config` object. Here's some examples:
+This makes it easy to configure classes in different environment (e.g.
+production vs test). All settings are documented below. `uri` is the
+most important! It must be set to instantiate clients.
 
 ```ruby
 class MyClient < Thrifer.build(MyService::Client)
   # Thrift specific things
   config.transport = Thrift::FramedTransport
-  config.protocol = Thrift::CompactTransport
+  config.protocol = Thrift::BinaryTransport
 
   # Pool settings
-  config.pool_size = 50
+  config.pool_size = 12
   config.pool_timeout = 0.15
 
   # Network Settings
   config.rpc_timeout = 0.15
+
+  # Required to instantiate the client!
+  config.uri = 'tcp://foo:2383'
+end
+
+#The common block form is supported as well
+MyClient.configure do |config|
+  # ... same as above
 end
 ```
 
