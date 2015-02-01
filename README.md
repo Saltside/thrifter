@@ -280,4 +280,4 @@ end
 5. Create a new Pull Request
 
 [retriable]: https://github.com/kamui/retriable
-[statd-ruby]: https://github.com/reinh/statsd
+[statsd-ruby]: https://github.com/reinh/statsd
