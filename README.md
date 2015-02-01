@@ -246,8 +246,8 @@ class MyService < Thrifter.build(MyService::Client)
 end
 ```
 
-Note, `Thrifter` will still count individual errors as described the metrics
-section.
+Note, `Thrifter` will still count individual errors as described in
+the metrics section.
 
 ### Pinging
 
