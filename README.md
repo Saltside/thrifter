@@ -162,13 +162,13 @@ end
 
 # logStats will be retried 3 times at 0.1 second intervals if any
 # known thrift or network errors happen.
-my_service.retriable.logStats({ 'users' => 5 })
+my_service.with_retry.logStats({ 'users' => 5 })
 
 # These settings can be customized by the retriable method.
-my_sevice.retriable({tries: 10, delay: 0.3 }).logStats({ 'sessions' => 50 })
+my_sevice.with_retry({tries: 10, delay: 0.3 }).logStats({ 'sessions' => 50 })
 
 # Naturally the block form may be used as well
-my_service.retriable do |with_retry|
+my_service.with_retry do |with_retry|
   with_retry.logStats({ 'sessions' => 50 })
   with_retry.logStats({ 'posts' => 30 })
 end
