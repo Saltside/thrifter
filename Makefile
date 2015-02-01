@@ -5,6 +5,14 @@ DOCKER_IMAGES:=tmp/docker_images
 
 BUNDLE_IMAGE:=thrifter/bundle
 
+# CircleCI does not support --rm, so if the environment variable has
+# value, then don't include --rm.
+ifneq ($(shell echo $$CIRCLECI),)
+DOCKER_RUN:=docker run -it
+else
+DOCKER_RUN:=docker run --rm -it
+endif
+
 $(THRIFT): test.thrift
 	mkdir -p $(@D)
 	thrift -o vendor --gen rb test.thrift
@@ -13,7 +21,7 @@ $(DOCKER_IMAGES):
 	mkdir -p $(@D)
 	touch $@
 		
-$(BUNDLE): Dockerfile thrifter.gemspec
+$(BUNDLE): Dockerfile thrifter.gemspec $(DOCKER_IMAGES)
 	docker build -t $(BUNDLE_IMAGE) .
 	docker inspect -f '{{ .Id }}' $(BUNDLE_IMAGE) >> $(DOCKER_IMAGES)
 
@@ -23,7 +31,7 @@ test: test-lib
 
 .PHONY: test-lib
 test-lib: $(THRIFT) $(BUNDLE)
-	docker run --rm -it -v $(CURDIR):/app $(BUNDLE_IMAGE) bundle exec rake test
+	$(DOCKER_RUN) -v $(CURDIR):/app $(BUNDLE_IMAGE) bundle exec rake test
 
 .PHONY: test-ci
 test-ci: test-lib test-monkey
@@ -31,7 +39,7 @@ test-ci: test-lib test-monkey
 .PHONY: test-monkey
 test-monkey: teardown
 	docker run -d -v $(CURDIR):/app --name server $(BUNDLE_IMAGE) script/server
-	docker run --rm -it --link server:server -v $(CURDIR):/app \
+	$(DOCKER_RUN) --link server:server -v $(CURDIR):/app \
 		$(BUNDLE_IMAGE) script/monkey-client server:9090
 
 .PHONY:
