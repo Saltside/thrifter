@@ -99,6 +99,18 @@ class AcceptanceTest < MiniTest::Unit::TestCase
     client.new
   end
 
+  def test_pool_options_work_as_string
+    client = Thrifter.build TestClient do
+      config.uri = 'http://localhost:9090'
+      config.pool_size = '50'
+      config.pool_timeout = '75.5'
+    end
+
+    ConnectionPool.expects(:new).with(size: 50, timeout: 75.5)
+
+    client.new
+  end
+
   # NOTE: This test is quite unfortunate, but there does not seem to be a good
   # way to simulate the 4 objects required to get a Thrift::Client instance
   # off the ground. The monkey tests will ensure the final product can communicate
@@ -129,6 +141,24 @@ class AcceptanceTest < MiniTest::Unit::TestCase
       returns(test_message)
 
     TestClient.expects(:new).with(protocol).returns(thrift_client)
+
+    thrifter = client.new
+
+    # connection pool is built lazily, so an RPC must be made to
+    # trigger the build
+    thrifter.echo test_message
+  end
+
+  def test_rpc_timeout_may_be_provided_as_a_string
+    test_message = TestMessage.new message: 'testing 123'
+
+    client = Thrifter.build TestClient
+    client.config.transport = FakeTransport
+    client.config.rpc_timeout = '15.2'
+    client.config.uri = uri
+
+    Thrift::Socket.expects(:new).
+      with(uri.host, uri.port, 15.2)
 
     thrifter = client.new
 

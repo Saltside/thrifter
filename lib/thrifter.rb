@@ -122,7 +122,7 @@ module Thrifter
 
       fail ArgumentError, 'URI did not contain port' unless uri.port
 
-      @pool = ConnectionPool.new size: config.pool_size, timeout: config.pool_timeout do
+      @pool = ConnectionPool.new size: config.pool_size.to_i, timeout: config.pool_timeout.to_f do
         stack = MiddlewareStack.new
 
         stack.use config.stack
@@ -132,7 +132,7 @@ module Thrifter
         # application may have configured.
         stack.use StatsdMiddleware, config.statsd
 
-        socket = Thrift::Socket.new uri.host, uri.port, config.rpc_timeout
+        socket = Thrift::Socket.new uri.host, uri.port, config.rpc_timeout.to_f
         transport = config.transport.new socket
         protocol = config.protocol.new transport
 
