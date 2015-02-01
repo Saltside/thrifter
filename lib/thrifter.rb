@@ -161,5 +161,6 @@ module Thrifter
 end
 
 require_relative 'thrifter/statsd_middleware'
+require_relative 'thrifter/ping'
 require_relative 'thrifter/error_wrapping_middleware'
 require_relative 'thrifter/retry'
