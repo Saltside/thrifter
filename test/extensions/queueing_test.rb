@@ -1,4 +1,4 @@
-require_relative 'test_helper'
+require_relative '../test_helper'
 
 class QueuingTest < MiniTest::Unit::TestCase
   class TestClient < TestService::Client

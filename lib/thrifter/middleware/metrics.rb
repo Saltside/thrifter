@@ -1,5 +1,5 @@
 module Thrifter
-  class StatsdMiddleware
+  class Metrics
     include Concord.new(:app, :statsd)
 
     def call(rpc)

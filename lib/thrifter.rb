@@ -1,11 +1,13 @@
 require 'thrifter/version'
 
 require 'forwardable'
+require 'delegate'
 require 'uri'
 require 'tnt'
 require 'concord'
 require 'thrift'
 require 'thrift-base64'
+require 'thrift-validator'
 require 'middleware'
 require 'connection_pool'
 
@@ -84,6 +86,14 @@ module Thrifter
       end
     end
 
+    class DirectDispatcher
+      include Concord.new(:app, :client)
+
+      def call(rpc)
+        client.send rpc.name, *rpc.args
+      end
+    end
+
     class << self
       extend Forwardable
 
@@ -115,12 +125,14 @@ module Thrifter
       end
     end
 
-    def initialize
-      fail ArgumentError, 'config.uri not set!' unless config.uri
+    def initialize(client = nil)
+      if client.nil?
+        fail ArgumentError, 'config.uri not set!' unless config.uri
 
-      uri = URI(config.uri)
+        uri = URI(config.uri)
 
-      fail ArgumentError, 'URI did not contain port' unless uri.port
+        fail ArgumentError, 'URI did not contain port' unless uri.port
+      end
 
       @pool = ConnectionPool.new size: config.pool_size.to_i, timeout: config.pool_timeout.to_f do
         stack = MiddlewareStack.new
@@ -130,13 +142,17 @@ module Thrifter
         # Insert metrics here so metrics are as close to the network
         # as possible. This excludes time in any middleware an
         # application may have configured.
-        stack.use StatsdMiddleware, config.statsd
+        stack.use Metrics, config.statsd
 
-        socket = Thrift::Socket.new uri.host, uri.port, config.rpc_timeout.to_f
-        transport = config.transport.new socket
-        protocol = config.protocol.new transport
+        if client.nil?
+          socket = Thrift::Socket.new uri.host, uri.port, config.rpc_timeout.to_f
+          transport = config.transport.new socket
+          protocol = config.protocol.new transport
 
-        stack.use Dispatcher, transport, client_class.new(protocol)
+          stack.use Dispatcher, transport, client_class.new(protocol)
+        else
+          stack.use DirectDispatcher, client
+        end
 
         stack.finalize!
       end
@@ -160,7 +176,9 @@ module Thrifter
   end
 end
 
-require_relative 'thrifter/statsd_middleware'
-require_relative 'thrifter/ping'
-require_relative 'thrifter/error_wrapping_middleware'
-require_relative 'thrifter/retry'
+require_relative 'thrifter/extensions/ping'
+require_relative 'thrifter/extensions/retriable'
+
+require_relative 'thrifter/middleware/error_wrapping'
+require_relative 'thrifter/middleware/validation'
+require_relative 'thrifter/middleware/metrics'

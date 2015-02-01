@@ -1,12 +1,12 @@
-require_relative './test_helper'
+require_relative '../test_helper'
 
-class ErrorWrappingMiddlewareTest < MiniTest::Unit::TestCase
+class ErrorWrappingTest < MiniTest::Unit::TestCase
   TestError = Class.new StandardError
 
   attr_reader :rpc
 
   def known_errors
-    Thrifter::ErrorWrappingMiddleware.wrapped
+    Thrifter::ErrorWrapping.wrapped
   end
 
   def setup
@@ -19,7 +19,7 @@ class ErrorWrappingMiddlewareTest < MiniTest::Unit::TestCase
     app = stub
     app.stubs(:call).with(rpc).raises(known_errors.first)
 
-    middleware = Thrifter::ErrorWrappingMiddleware.new app
+    middleware = Thrifter::ErrorWrapping.new app
 
     assert_raises Thrifter::ClientError do
       middleware.call rpc
@@ -30,7 +30,7 @@ class ErrorWrappingMiddlewareTest < MiniTest::Unit::TestCase
     app = stub
     app.stubs(:call).with(rpc).raises(TestError)
 
-    middleware = Thrifter::ErrorWrappingMiddleware.new app, [ TestError ]
+    middleware = Thrifter::ErrorWrapping.new app, [ TestError ]
 
     assert_raises Thrifter::ClientError do
       middleware.call rpc
@@ -41,7 +41,7 @@ class ErrorWrappingMiddlewareTest < MiniTest::Unit::TestCase
     app = stub
     app.stubs(:call).with(rpc).raises(TestError.new('testing 123'))
 
-    middleware = Thrifter::ErrorWrappingMiddleware.new app, [ TestError ]
+    middleware = Thrifter::ErrorWrapping.new app, [ TestError ]
 
     error = assert_raises Thrifter::ClientError do
       middleware.call rpc

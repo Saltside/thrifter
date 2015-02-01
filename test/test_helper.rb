@@ -1,6 +1,6 @@
 require 'bundler/setup'
 require 'thrifter'
-require 'thrifter/queueing'
+require 'thrifter/extensions/queueing'
 
 root = File.expand_path '../..', __FILE__
 $LOAD_PATH << "#{root}/vendor/gen-rb"

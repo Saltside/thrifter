@@ -11,7 +11,7 @@ end
 
 require 'bundler/setup'
 require 'thrifter'
-require 'thrifter/queueing'
+require 'thrifter/extensions/queueing'
 require 'securerandom'
 
 require 'eventmachine'

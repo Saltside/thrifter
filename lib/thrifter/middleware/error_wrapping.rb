@@ -3,7 +3,7 @@ module Thrifter
     "#{ex.class}: #{ex.message}"
   end
 
-  class ErrorWrappingMiddleware
+  class ErrorWrapping
     WRAP = [
       Thrift::TransportException,
       Thrift::ProtocolException,

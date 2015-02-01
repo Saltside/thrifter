@@ -1,4 +1,4 @@
-require_relative 'test_helper'
+require_relative '../test_helper'
 
 class RetryTest < MiniTest::Unit::TestCase
   JunkError = Class.new StandardError
