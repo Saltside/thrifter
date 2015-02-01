@@ -9,7 +9,7 @@ production uses. It's most important features are:
 * Retry support
 * Proper timeout's by default
 * Metrics
-* Better handling
+* Better error handling
 * Middleware
 
 ## Installation
