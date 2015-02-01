@@ -77,12 +77,10 @@ module Thrifter
       include Concord.new(:app, :transport, :client)
 
       def call(rpc)
-        begin
-          transport.open
-          client.send rpc.name, *rpc.args
-        ensure
-          transport.close
-        end
+        transport.open
+        client.send rpc.name, *rpc.args
+      ensure
+        transport.close
       end
     end
 
