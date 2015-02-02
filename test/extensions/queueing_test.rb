@@ -12,6 +12,10 @@ class QueuingTest < MiniTest::Unit::TestCase
     include Thrifter::Queueing
 
     self.config.uri = 'tcp://localhost:9090'
+
+    def custom_echo
+      echo TestMessage.new(message: 'custom')
+    end
   end
 
   def queue
@@ -26,7 +30,7 @@ class QueuingTest < MiniTest::Unit::TestCase
     queue.clear
   end
 
-  def test_sends_rpcs_with_sidekiq
+  def test_queues_methods_with_sidekiq
     client = QueuedClient.new
 
     message = TestMessage.new message: 'echo'
@@ -62,7 +66,7 @@ class QueuingTest < MiniTest::Unit::TestCase
     refute jobs.empty?, 'Nothing enqueued'
   end
 
-  def test_fails_if_given_rpc_name
+  def test_fails_if_given_unknown_method
     client = QueuedClient.new
     message = TestMessage.new message: 'echo'
 

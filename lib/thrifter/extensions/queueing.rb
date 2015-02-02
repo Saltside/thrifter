@@ -12,27 +12,37 @@ module Thrifter
       # other structure. This is why the method has so many arguments.
       # Sidekik-thrift_arguments will correctly pick up any complex
       # type in the splat and handle serialization/deserialization
-      def perform(klass, rpc_name, *rpc_args)
+      def perform(klass, method_name, *args)
         client = klass.constantize.new
-        client.send rpc_name, *rpc_args
+        client.send method_name, *args
       end
     end
 
-    class Proxy
-      def initialize(klass, rpcs)
-        rpcs.each do |name|
-          define_singleton_method name do |*args|
-            job_args = [ klass.to_s, name ].concat(args)
-            Job.perform_async(*job_args)
-          end
+    class Proxy < BasicObject
+      def initialize(target)
+        @target = target
+      end
+
+      def method_missing(name, *args, &block)
+        if target.respond_to? name
+          job_args = [ target.class.to_s, name ].concat(args)
+          Job.perform_async(*job_args)
+        else
+          super
         end
+      end
+
+      private
+
+      def target
+        @target
       end
     end
 
     def queued
-      Proxy.new(self.class, rpcs).tap do |proxy|
-        yield proxy if block_given?
-      end
+      proxy = Proxy.new self
+      yield proxy if block_given?
+      proxy
     end
   end
 end

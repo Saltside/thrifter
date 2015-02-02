@@ -16,20 +16,18 @@ module Thrifter
       Errno::ETIMEDOUT
     ]
 
-    class Proxy
+    class Proxy < BasicObject
       attr_reader :tries, :interval, :client
 
-      def initialize(client, tries, interval, rpcs)
+      def initialize(client, tries, interval)
         @client, @tries, @interval = client, tries, interval
-
-        rpcs.each do |name|
-          define_singleton_method name do |*args|
-            invoke_with_retry(name, *args)
-          end
-        end
       end
 
       private
+
+      def method_missing(name, *args)
+        invoke_with_retry(name, *args)
+      end
 
       def invoke_with_retry(name, *args)
         counter = 0
@@ -49,9 +47,9 @@ module Thrifter
     end
 
     def with_retry(tries: 5, interval: 0.01)
-      Proxy.new(self, tries, interval, rpcs).tap do |proxy|
-        yield proxy if block_given?
-      end
+      proxy = Proxy.new self, tries, interval
+      yield proxy if block_given?
+      proxy
     end
   end
 end
