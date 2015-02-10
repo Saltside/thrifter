@@ -117,8 +117,8 @@ module Thrifter
           config.transport = Thrift::FramedTransport
           config.protocol = Thrift::BinaryProtocol
           config.pool_size = 12
-          config.pool_timeout = 0.1
-          config.rpc_timeout = 0.3
+          config.pool_timeout = 2
+          config.rpc_timeout = 2
           config.statsd = NullStatsd.new
           config.stack = MiddlewareStack.new
         end

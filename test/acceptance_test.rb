@@ -40,12 +40,12 @@ class AcceptanceTest < MiniTest::Unit::TestCase
 
   def test_has_reasonable_default_pool_timeout
     client = Thrifter.build TestClient
-    assert_equal 0.1, client.config.pool_timeout
+    assert_equal 2, client.config.pool_timeout
   end
 
   def test_has_reasonable_default_rpc_timeout
     client = Thrifter.build TestClient
-    assert_equal 0.3, client.config.rpc_timeout
+    assert_equal 2, client.config.rpc_timeout
   end
 
   def test_defaults_to_null_statd
