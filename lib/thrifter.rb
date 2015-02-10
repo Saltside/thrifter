@@ -142,7 +142,7 @@ module Thrifter
         # Insert metrics here so metrics are as close to the network
         # as possible. This excludes time in any middleware an
         # application may have configured.
-        stack.use Metrics, config.statsd
+        stack.use ClientMetrics, config.statsd
 
         if client
           stack.use DirectDispatcher, client
@@ -181,4 +181,5 @@ require_relative 'thrifter/extensions/retriable'
 
 require_relative 'thrifter/middleware/error_wrapping'
 require_relative 'thrifter/middleware/validation'
-require_relative 'thrifter/middleware/metrics'
+require_relative 'thrifter/middleware/client_metrics'
+require_relative 'thrifter/middleware/rpc_metrics'
