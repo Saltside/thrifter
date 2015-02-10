@@ -143,6 +143,7 @@ module Thrifter
         # as possible. This excludes time in any middleware an
         # application may have configured.
         stack.use ClientMetrics, config.statsd
+        stack.use RpcMetrics, config.statsd
 
         if client
           stack.use DirectDispatcher, client
