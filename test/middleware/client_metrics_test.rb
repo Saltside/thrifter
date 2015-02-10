@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class MetricsTest < MiniTest::Unit::TestCase
+class ClientMetricsTest < MiniTest::Unit::TestCase
   attr_reader :rpc
 
   def setup
@@ -9,14 +9,16 @@ class MetricsTest < MiniTest::Unit::TestCase
     @rpc = Thrifter::RPC.new(:foo, :args)
   end
 
-  def test_times_each_rpc
+  def test_happy_path_calls
     app = stub
     app.stubs(:call).with(rpc)
 
     statsd = mock
-    statsd.expects(:time).with(rpc.name).yields.returns(:response)
+    statsd.expects(:time).with('rpc.latency').yields.returns(:response)
+    statsd.expects(:increment).with('rpc.success')
+    statsd.expects(:increment).with('rpc.outgoing')
 
-    middleware = Thrifter::Metrics.new app, statsd
+    middleware = Thrifter::ClientMetrics.new app, statsd
     result = middleware.call rpc
 
     assert :response == result, 'Return value incorrect'
@@ -28,9 +30,11 @@ class MetricsTest < MiniTest::Unit::TestCase
 
     statsd = mock
     statsd.expects(:time).yields
-    statsd.expects(:increment).with('errors.transport')
+    statsd.expects(:increment).with('rpc.outgoing')
+    statsd.expects(:increment).with('rpc.error.transport')
+    statsd.expects(:increment).with('rpc.error')
 
-    middleware = Thrifter::Metrics.new app, statsd
+    middleware = Thrifter::ClientMetrics.new app, statsd
 
     assert_raises Thrift::TransportException do
       middleware.call rpc
@@ -43,9 +47,11 @@ class MetricsTest < MiniTest::Unit::TestCase
 
     statsd = mock
     statsd.expects(:time).yields
-    statsd.expects(:increment).with('errors.protocol')
+    statsd.expects(:increment).with('rpc.outgoing')
+    statsd.expects(:increment).with('rpc.error.protocol')
+    statsd.expects(:increment).with('rpc.error')
 
-    middleware = Thrifter::Metrics.new app, statsd
+    middleware = Thrifter::ClientMetrics.new app, statsd
 
     assert_raises Thrift::ProtocolException do
       middleware.call rpc
@@ -58,9 +64,11 @@ class MetricsTest < MiniTest::Unit::TestCase
 
     statsd = mock
     statsd.expects(:time).yields
-    statsd.expects(:increment).with('errors.application')
+    statsd.expects(:increment).with('rpc.outgoing')
+    statsd.expects(:increment).with('rpc.error.application')
+    statsd.expects(:increment).with('rpc.error')
 
-    middleware = Thrifter::Metrics.new app, statsd
+    middleware = Thrifter::ClientMetrics.new app, statsd
 
     assert_raises Thrift::ApplicationException do
       middleware.call rpc
@@ -73,9 +81,11 @@ class MetricsTest < MiniTest::Unit::TestCase
 
     statsd = mock
     statsd.expects(:time).yields
-    statsd.expects(:increment).with('errors.timeout')
+    statsd.expects(:increment).with('rpc.outgoing')
+    statsd.expects(:increment).with('rpc.error.timeout')
+    statsd.expects(:increment).with('rpc.error')
 
-    middleware = Thrifter::Metrics.new app, statsd
+    middleware = Thrifter::ClientMetrics.new app, statsd
 
     assert_raises Timeout::Error do
       middleware.call rpc
@@ -88,9 +98,11 @@ class MetricsTest < MiniTest::Unit::TestCase
 
     statsd = mock
     statsd.expects(:time).yields
-    statsd.expects(:increment).with('errors.other')
+    statsd.expects(:increment).with('rpc.outgoing')
+    statsd.expects(:increment).with('rpc.error.other')
+    statsd.expects(:increment).with('rpc.error')
 
-    middleware = Thrifter::Metrics.new app, statsd
+    middleware = Thrifter::ClientMetrics.new app, statsd
 
     assert_raises StandardError do
       middleware.call rpc
