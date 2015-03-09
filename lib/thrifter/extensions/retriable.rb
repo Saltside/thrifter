@@ -23,7 +23,7 @@ module Thrifter
         @client = client
         @tries = tries
         @interval = interval
-        @retriable = DEFAULT_RETRIABLE_ERRORS + retriable
+        @retriable = DEFAULT_RETRIABLE_ERRORS + Array(retriable)
       end
 
       private

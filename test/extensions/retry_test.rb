@@ -53,7 +53,21 @@ class RetryTest < MiniTest::Unit::TestCase
 
     client = RetryClient.new
 
-    result = client.with_retry({ tries: 2, interval: 0.01, retriable: [KnownError] }).echo(:request)
+    result = client.with_retry({ tries: 2, interval: 0.01, retriable: KnownError }).echo(:request)
+
+    assert :response == result, 'return value incorrect'
+  end
+
+  def test_retries_on_exceptions_specified_in_array
+    thrift_client = mock
+    retries = sequence(:retries)
+    thrift_client.expects(:echo).with(:request).in_sequence(retries).raises(KnownError)
+    thrift_client.expects(:echo).with(:request).in_sequence(retries).returns(:response)
+    TestService::Client.stubs(:new).returns(thrift_client)
+
+    client = RetryClient.new
+
+    result = client.with_retry({ tries: 2, interval: 0.01, retriable: [ KnownError ] }).echo(:request)
 
     assert :response == result, 'return value incorrect'
   end
