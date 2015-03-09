@@ -4,7 +4,7 @@ module Thrifter
   end
 
   module Retry
-    RETRIABLE_ERRORS = [
+    DEFAULT_RETRIABLE_ERRORS = [
       Thrift::TransportException,
       Thrift::ProtocolException,
       Thrift::ApplicationException,
@@ -23,7 +23,7 @@ module Thrifter
         @client = client
         @tries = tries
         @interval = interval
-        @retriable = retriable
+        @retriable = DEFAULT_RETRIABLE_ERRORS + retriable
       end
 
       private
@@ -38,7 +38,7 @@ module Thrifter
         begin
           counter = counter + 1
           client.send name, *args
-        rescue *(RETRIABLE_ERRORS + retriable) => ex
+        rescue *retriable => ex
           if counter < tries
             sleep interval
             retry

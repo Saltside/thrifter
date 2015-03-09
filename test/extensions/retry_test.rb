@@ -15,7 +15,7 @@ class RetryTest < MiniTest::Unit::TestCase
   end
 
   def known_errors
-    Thrifter::Retry::RETRIABLE_ERRORS
+    Thrifter::Retry::DEFAULT_RETRIABLE_ERRORS
   end
 
   def test_does_not_retry_on_unexpected_errors
