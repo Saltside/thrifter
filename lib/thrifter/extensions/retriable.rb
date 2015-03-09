@@ -17,10 +17,13 @@ module Thrifter
     ]
 
     class Proxy < BasicObject
-      attr_reader :tries, :interval, :client
+      attr_reader :tries, :interval, :client, :retriable
 
-      def initialize(client, tries, interval)
-        @client, @tries, @interval = client, tries, interval
+      def initialize(client, tries, interval, retriable)
+        @client = client
+        @tries = tries
+        @interval = interval
+        @retriable = retriable
       end
 
       private
@@ -35,7 +38,7 @@ module Thrifter
         begin
           counter = counter + 1
           client.send name, *args
-        rescue *RETRIABLE_ERRORS => ex
+        rescue *(RETRIABLE_ERRORS + retriable) => ex
           if counter < tries
             sleep interval
             retry
@@ -46,8 +49,8 @@ module Thrifter
       end
     end
 
-    def with_retry(tries: 5, interval: 0.01)
-      proxy = Proxy.new self, tries, interval
+    def with_retry(tries: 5, interval: 0.01, retriable: [ ])
+      proxy = Proxy.new self, tries, interval, retriable
       yield proxy if block_given?
       proxy
     end
