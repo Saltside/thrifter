@@ -23,6 +23,11 @@ class AcceptanceTest < MiniTest::Unit::TestCase
     @uri = URI('tcp://localhost:9090')
   end
 
+  def test_defaults_to_keep_alive
+    client = Thrifter.build TestClient
+    assert client.config.keep_alive
+  end
+
   def test_defaults_to_framed_transport
     client = Thrifter.build TestClient
     assert_equal Thrift::FramedTransport, client.config.transport
@@ -121,7 +126,7 @@ class AcceptanceTest < MiniTest::Unit::TestCase
     client = Thrifter.build TestClient
     client.config.uri = uri
 
-    socket, transport, protocol = stub, stub(open: nil, close: nil), stub
+    socket, transport, protocol = stub, stub(open: nil, close: nil, open?: false), stub
 
     Thrift::Socket.expects(:new).
       with(uri.host, uri.port, client.config.rpc_timeout).
@@ -210,10 +215,42 @@ class AcceptanceTest < MiniTest::Unit::TestCase
     assert_equal :stubbed_response, thrifter.echo(:request)
   end
 
-  def test_close_the_transport_on_successful_rpc
-    transport = mock
+  def test_does_not_close_transport_when_keep_alive_set
+    transport = mock open?: false
+    client = Thrifter.build TestClient
+    client.config.keep_alive = true
+    client.config.uri = uri
+    client.config.transport.stubs(:new).returns(transport)
+
+    transport.expects(:open)
+    transport.expects(:close).never
+
+    thrifter = client.new
+    thrifter.echo message
+  end
+
+  def test_closes_transport_if_error_occurs_when_keep_alive_set
+    transport = mock open?: false
+    client = Thrifter.build BrokenTestClient
+    client.config.keep_alive = true
+    client.config.uri = uri
+    client.config.transport.stubs(:new).returns(transport)
+
+    transport.expects(:open)
+    transport.expects(:close)
+
+    thrifter = client.new
+
+    assert_raises SimulatedError do
+      thrifter.echo message
+    end
+  end
+
+  def test_close_the_transport_on_successful_rpc_when_no_keep_alive
+    transport = mock open?: false
     client = Thrifter.build TestClient
     client.config.uri = uri
+    client.config.keep_alive = false
     client.config.transport.stubs(:new).returns(transport)
 
     transport.expects(:open)
@@ -223,10 +260,11 @@ class AcceptanceTest < MiniTest::Unit::TestCase
     thrifter.echo message
   end
 
-  def test_close_the_transport_if_client_fails
-    transport = mock
+  def test_close_the_transport_if_rpc_fails_when_no_keep_alive
+    transport = mock open?: false
     client = Thrifter.build BrokenTestClient
     client.config.uri = uri
+    client.config.keep_alive = false
     client.config.transport.stubs(:new).returns(transport)
 
     transport.expects(:open)

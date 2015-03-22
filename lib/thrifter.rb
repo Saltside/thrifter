@@ -40,6 +40,7 @@ module Thrifter
   Configuration = Struct.new :transport, :protocol,
     :pool_size, :pool_timeout,
     :uri, :rpc_timeout,
+    :keep_alive,
     :stack, :statsd
 
   class << self
@@ -76,13 +77,21 @@ module Thrifter
 
   class Client
     class Dispatcher
-      include Concord.new(:app, :transport, :client)
+      attr_reader :app, :transport, :client, :config
+
+      def initialize(app, transport, client, config)
+        @app, @transport, @client, @config = app, transport, client, config
+      end
 
       def call(rpc)
-        transport.open
-        client.send rpc.name, *rpc.args
-      ensure
+        transport.open unless transport.open?
+
+        client.send(rpc.name, *rpc.args).tap do
+          transport.close unless config.keep_alive
+        end
+      rescue => ex
         transport.close
+        raise ex
       end
     end
 
@@ -114,6 +123,7 @@ module Thrifter
       def inherited(base)
         base.config = Configuration.new
         base.configure do |config|
+          config.keep_alive = true
           config.transport = Thrift::FramedTransport
           config.protocol = Thrift::BinaryProtocol
           config.pool_size = 12
@@ -152,7 +162,7 @@ module Thrifter
           transport = config.transport.new socket
           protocol = config.protocol.new transport
 
-          stack.use Dispatcher, transport, client_class.new(protocol)
+          stack.use Dispatcher, transport, client_class.new(protocol), config
         end
 
         stack.finalize!
