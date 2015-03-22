@@ -76,6 +76,7 @@ class MyClient < Thrifer.build(MyService::Client)
 
   # Network Settings
   config.rpc_timeout = 0.15
+  config.keep_alive = true
 
   # Required to instantiate the client!
   config.uri = 'tcp://foo:2383'

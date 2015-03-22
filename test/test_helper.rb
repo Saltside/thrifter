@@ -23,6 +23,10 @@ class FakeTransport
 
   end
 
+  def open?
+    false
+  end
+
   def close
 
   end
