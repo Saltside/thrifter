@@ -1,8 +1,4 @@
 module Thrifter
-  ClientError = Tnt.boom do |ex|
-    "#{ex.class}: #{ex.message}"
-  end
-
   class ErrorWrapping
     WRAP = [
       Thrift::TransportException,

@@ -12,6 +12,10 @@ require 'middleware'
 require 'connection_pool'
 
 module Thrifter
+  ClientError = Tnt.boom do |ex|
+    "#{ex.class}: #{ex.message}"
+  end
+
   RPC = Struct.new(:name, :args)
 
   class MiddlewareStack < Middleware::Builder
