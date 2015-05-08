@@ -5,6 +5,7 @@ module Thrifter
 
   module Retry
     DEFAULT_RETRIABLE_ERRORS = [
+      ClientError,
       Thrift::TransportException,
       Thrift::ProtocolException,
       Thrift::ApplicationException,

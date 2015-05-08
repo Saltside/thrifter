@@ -103,6 +103,10 @@ class RetryTest < MiniTest::Unit::TestCase
     assert_includes known_errors, Timeout::Error
   end
 
+  def test_retries_on_wrapped_client_error
+    assert_includes known_errors, Thrifter::ClientError
+  end
+
   def test_retries_on_econrefused
     assert_includes known_errors, Errno::ECONNREFUSED
   end
