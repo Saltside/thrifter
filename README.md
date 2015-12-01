@@ -30,7 +30,7 @@ Or install it yourself as:
 
 ## Usage
 
-`Thrifer` is a factory (similar to `DelegateClass`) for building
+`Thrifter` is a factory (similar to `DelegateClass`) for building
 client classes. It can be used like `DelegateClass` or like `Struct`.
 The result is subclasses of `Thrifter::Client`. The classes use the
 same methods to make RPCs. For example if the thrift service has a
@@ -42,7 +42,7 @@ RPC. Here are some examples.
 ServiceClient = Thrifter.build(MyService::Client)
 
 The struct style take a block as well
-ServiceClient = Thrifer.build(MyService::Client) do
+ServiceClient = Thrifter.build(MyService::Client) do
   def custom_method(args)
     # something something
   end
@@ -65,7 +65,7 @@ production vs test). All settings are documented below. `uri` is the
 most important! It must be set to instantiate clients.
 
 ```ruby
-class MyClient < Thrifer.build(MyService::Client)
+class MyClient < Thrifter.build(MyService::Client)
   # Thrift specific things
   config.transport = Thrift::FramedTransport
   config.protocol = Thrift::BinaryTransport
@@ -169,15 +169,15 @@ solution for different use cases.
 #### Pinging
 
 Components in a system may need to inquire if other systems are
-available before continuing. `Thrifer::Ping` is just that.
+available before continuing. `Thrifter::Ping` is just that.
 `Thrifter::Ping` assumes the service has a `ping` RPC. If your
 service does not have one (or is named differently) simply implement
 the `ping` method on the class. Any successful response will count as
 up, anything else will not.
 
 ```ruby
-class MyService < Thrifer.build(MyService::Client)
-  include Thrifer::Ping
+class MyService < Thrifter.build(MyService::Client)
+  include Thrifter::Ping
 
   # Define a ping method if the service does not have one
   def ping
@@ -216,7 +216,7 @@ middleware in whatever code configurres that environment. Only static
 middleware should be configured directly in the class itself.
 
 A middleware must implement the `call` method and accept at least one
-argument to `initialize`. The `call` method recieves a `Thrifer::RPC`.
+argument to `initialize`. The `call` method recieves a `Thrifter::RPC`.
 `Thrifter::RPC` is a sipmle struct with a `name` and `args` methods.
 Here's an example:
 
