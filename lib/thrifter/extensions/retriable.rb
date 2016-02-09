@@ -1,6 +1,6 @@
 module Thrifter
-  RetryError = Tnt.boom do |count, rpc|
-    "#{rpc} RPC unsuccessful after #{count} times"
+  RetryError = Tnt.boom do |count, rpc, exception|
+    "#{rpc} RPC unsuccessful after #{count} times. #{exception.class}: #{exception.message}"
   end
 
   module Retry
@@ -44,7 +44,7 @@ module Thrifter
             sleep interval
             retry
           else
-            raise RetryError.new(tries, name)
+            raise RetryError.new(tries, name, ex)
           end
         end
       end

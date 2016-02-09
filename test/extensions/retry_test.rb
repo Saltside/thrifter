@@ -73,8 +73,10 @@ class RetryTest < MiniTest::Unit::TestCase
   end
 
   def test_fails_if_does_not_respond_successfully
+    err = known_errors.sample
+
     thrift_client = mock
-    thrift_client.expects(:echo).with(:request).raises(known_errors.sample).times(5)
+    thrift_client.expects(:echo).with(:request).raises(err).times(5)
     TestService::Client.stubs(:new).returns(thrift_client)
 
     client = RetryClient.new
@@ -85,6 +87,7 @@ class RetryTest < MiniTest::Unit::TestCase
 
     assert_match /5/, error.message, 'Error not descriptive'
     assert_match /echo/, error.message, 'Error not descriptive'
+    assert_match /#{err.to_s}/, error.message, 'Missing error details'
   end
 
   def test_retries_on_application_exception
