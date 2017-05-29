@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.name          = "thrifter"
   spec.version       = Thrifter::VERSION
   spec.authors       = ["ahawkins"]
-  spec.email         = ["adam@hawkins.io"]
+  spec.email         = ["hi@ahawkins.me"]
   spec.summary       = %q{Production ready Thrift client with improved semantics}
   spec.description   = %q{}
   spec.homepage      = "https://github.com/saltside/thrifter"
