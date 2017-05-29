@@ -14,7 +14,18 @@ module Thrifter
       response
     rescue Thrift::TransportException => ex
       statsd.increment "rpc.#{rpc.name}.error"
-      statsd.increment "rpc.#{rpc.name}.error.transport"
+      case ex.type
+      when Thrift::TransportException::UNKNOWN
+        statsd.increment "rpc.#{rpc.name}.error.transport.unknown"
+      when Thrift::TransportException::NOT_OPEN
+        statsd.increment "rpc.#{rpc.name}.error.transport.not_open"
+      when Thrift::TransportException::ALREADY_OPEN
+        statsd.increment "rpc.#{rpc.name}.error.transport.already_open"
+      when Thrift::TransportException::TIMED_OUT
+        statsd.increment "rpc.#{rpc.name}.error.transport.timeout"
+      when Thrift::TransportException::END_OF_FILE
+        statsd.increment "rpc.#{rpc.name}.error.transport.eof"
+      end
       raise ex
     rescue Thrift::ProtocolException => ex
       statsd.increment "rpc.#{rpc.name}.error"

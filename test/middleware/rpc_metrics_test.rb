@@ -24,13 +24,91 @@ class RpcMetricsTest < MiniTest::Unit::TestCase
     assert :response == result, 'Return value incorrect'
   end
 
-  def test_counts_transport_exceptions_and_reraises
+  def test_counts_unknown_transport_exceptions_and_reraises
     app = stub
-    app.stubs(:call).with(rpc).raises(Thrift::TransportException)
+    app.stubs(:call).with(rpc).raises(Thrift::TransportException.new(
+      Thrift::TransportException::UNKNOWN
+    ))
 
     statsd = mock
     statsd.expects(:time).yields
-    statsd.expects(:increment).with("rpc.#{rpc.name}.error.transport")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.transport.unknown")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::TransportException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_not_open_transport_exceptions_and_reraises
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::TransportException.new(
+      Thrift::TransportException::NOT_OPEN
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.transport.not_open")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::TransportException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_already_open_transport_exceptions_and_reraises
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::TransportException.new(
+      Thrift::TransportException::ALREADY_OPEN
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.transport.already_open")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::TransportException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_timed_out_transport_exceptions_and_reraises
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::TransportException.new(
+      Thrift::TransportException::TIMED_OUT
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.transport.timeout")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::TransportException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_eof_transport_exceptions_and_reraises
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::TransportException.new(
+      Thrift::TransportException::END_OF_FILE
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.transport.eof")
     statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
     statsd.expects(:increment).with("rpc.#{rpc.name}.error")
 
