@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.7"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "mocha"
-  spec.add_development_dependency "sidekiq"
+  spec.add_development_dependency "sidekiq", "~> 4.2"
   spec.add_development_dependency "sidekiq-thrift_arguments"
   spec.add_development_dependency "eventmachine"
 end
