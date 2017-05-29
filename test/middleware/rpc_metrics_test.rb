@@ -119,13 +119,129 @@ class RpcMetricsTest < MiniTest::Unit::TestCase
     end
   end
 
-  def test_counts_protocol_exceptions
+  def test_counts_unknown_protocol_exceptions
     app = stub
-    app.stubs(:call).with(rpc).raises(Thrift::ProtocolException)
+    app.stubs(:call).with(rpc).raises(Thrift::ProtocolException.new(
+      Thrift::ProtocolException::UNKNOWN
+    ))
 
     statsd = mock
     statsd.expects(:time).yields
-    statsd.expects(:increment).with("rpc.#{rpc.name}.error.protocol")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.protocol.unknown")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ProtocolException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_invalid_data_protocol_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ProtocolException.new(
+      Thrift::ProtocolException::INVALID_DATA
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.protocol.invalid_data")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ProtocolException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_negative_size_protocol_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ProtocolException.new(
+      Thrift::ProtocolException::NEGATIVE_SIZE
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.protocol.negative_size")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ProtocolException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_size_limit_protocol_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ProtocolException.new(
+      Thrift::ProtocolException::SIZE_LIMIT
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.protocol.size_limit")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ProtocolException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_bad_version_protocol_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ProtocolException.new(
+      Thrift::ProtocolException::BAD_VERSION
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.protocol.bad_version")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ProtocolException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_not_implemented_protocol_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ProtocolException.new(
+      Thrift::ProtocolException::NOT_IMPLEMENTED
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.protocol.not_implemented")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ProtocolException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_depth_limit_protocol_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ProtocolException.new(
+      Thrift::ProtocolException::DEPTH_LIMIT
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.protocol.depth_limit")
     statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
     statsd.expects(:increment).with("rpc.#{rpc.name}.error")
 

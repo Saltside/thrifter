@@ -29,7 +29,22 @@ module Thrifter
       raise ex
     rescue Thrift::ProtocolException => ex
       statsd.increment "rpc.#{rpc.name}.error"
-      statsd.increment "rpc.#{rpc.name}.error.protocol"
+      case ex.type
+      when Thrift::ProtocolException::UNKNOWN
+        statsd.increment "rpc.#{rpc.name}.error.protocol.unknown"
+      when Thrift::ProtocolException::INVALID_DATA
+        statsd.increment "rpc.#{rpc.name}.error.protocol.invalid_data"
+      when Thrift::ProtocolException::NEGATIVE_SIZE
+        statsd.increment "rpc.#{rpc.name}.error.protocol.negative_size"
+      when Thrift::ProtocolException::SIZE_LIMIT
+        statsd.increment "rpc.#{rpc.name}.error.protocol.size_limit"
+      when Thrift::ProtocolException::BAD_VERSION
+        statsd.increment "rpc.#{rpc.name}.error.protocol.bad_version"
+      when Thrift::ProtocolException::NOT_IMPLEMENTED
+        statsd.increment "rpc.#{rpc.name}.error.protocol.not_implemented"
+      when Thrift::ProtocolException::DEPTH_LIMIT
+        statsd.increment "rpc.#{rpc.name}.error.protocol.depth_limit"
+      end
       raise ex
     rescue Thrift::ApplicationException => ex
       statsd.increment "rpc.#{rpc.name}.error"
