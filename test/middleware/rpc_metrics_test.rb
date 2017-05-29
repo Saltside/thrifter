@@ -252,13 +252,205 @@ class RpcMetricsTest < MiniTest::Unit::TestCase
     end
   end
 
-  def test_counts_application_exceptions
+  def test_counts_unknown_application_exceptions
     app = stub
-    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException)
+    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException.new(
+      Thrift::ApplicationException::UNKNOWN
+    ))
 
     statsd = mock
     statsd.expects(:time).yields
-    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application.unknown")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ApplicationException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_unknown_method_application_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException.new(
+      Thrift::ApplicationException::UNKNOWN_METHOD
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application.unknown_method")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ApplicationException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_invalid_message_type_application_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException.new(
+      Thrift::ApplicationException::INVALID_MESSAGE_TYPE
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application.invalid_message_type")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ApplicationException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_wrong_method_name_application_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException.new(
+      Thrift::ApplicationException::WRONG_METHOD_NAME
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application.wrong_method_name")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ApplicationException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_bad_sequence_id_application_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException.new(
+      Thrift::ApplicationException::BAD_SEQUENCE_ID
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application.bad_sequence_id")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ApplicationException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_missing_result_application_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException.new(
+      Thrift::ApplicationException::MISSING_RESULT
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application.missing_result")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ApplicationException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_internal_error_application_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException.new(
+      Thrift::ApplicationException::INTERNAL_ERROR
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application.internal_error")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ApplicationException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_protocol_error_application_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException.new(
+      Thrift::ApplicationException::PROTOCOL_ERROR
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application.protocol_error")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ApplicationException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_invalid_transform_application_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException.new(
+      Thrift::ApplicationException::INVALID_TRANSFORM
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application.invalid_transform")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ApplicationException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_invalid_protocol_application_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException.new(
+      Thrift::ApplicationException::INVALID_PROTOCOL
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application.invalid_protocol")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrift::ApplicationException do
+      middleware.call rpc
+    end
+  end
+
+  def test_counts_unsupported_client_type_application_exceptions
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrift::ApplicationException.new(
+      Thrift::ApplicationException::UNSUPPORTED_CLIENT_TYPE
+    ))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.application.unsupported_client_type")
     statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
     statsd.expects(:increment).with("rpc.#{rpc.name}.error")
 
