@@ -14,8 +14,35 @@ class RetryTest < MiniTest::Unit::TestCase
     config.transport = FakeTransport
   end
 
+  class TestStatsd
+    attr_reader :counters
+
+    def initialize
+      @counters = [ ]
+    end
+
+    def increment(counter)
+      @counters << counter
+    end
+
+    def time(*args)
+      yield
+    end
+  end
+
+  attr_reader :statsd
+
   def known_errors
     Thrifter::Retry::DEFAULT_RETRIABLE_ERRORS
+  end
+
+  def setup
+    super
+    @statsd = TestStatsd.new
+
+    RetryClient.configure do |config|
+      config.statsd = statsd
+    end
   end
 
   def test_does_not_retry_on_unexpected_errors
@@ -42,6 +69,12 @@ class RetryTest < MiniTest::Unit::TestCase
     result = client.with_retry({ tries: 2, interval: 0.01 }).echo(:request)
 
     assert :response == result, 'return value incorrect'
+
+    counters = statsd.counters.count do |item|
+      item == 'rpc.echo.retry'
+    end
+
+    assert_equal 1, counters, 'Retry not counted'
   end
 
   def test_retries_on_exceptions_specified_explicitly
@@ -88,6 +121,12 @@ class RetryTest < MiniTest::Unit::TestCase
     assert_match /5/, error.message, 'Error not descriptive'
     assert_match /echo/, error.message, 'Error not descriptive'
     assert_match /#{err.to_s}/, error.message, 'Missing error details'
+
+    counters = statsd.counters.count do |item|
+      item == 'rpc.echo.retry'
+    end
+
+    assert_equal 5, counters, 'Retry not counted'
   end
 
   def test_retries_on_application_exception

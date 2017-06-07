@@ -478,6 +478,23 @@ class RpcMetricsTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_counts_retry_failures
+    app = stub
+    app.stubs(:call).with(rpc).raises(Thrifter::RetryError.new(1, 'echo', StandardError.new))
+
+    statsd = mock
+    statsd.expects(:time).yields
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error.retry")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.outgoing")
+    statsd.expects(:increment).with("rpc.#{rpc.name}.error")
+
+    middleware = Thrifter::RpcMetrics.new app, statsd
+
+    assert_raises Thrifter::RetryError  do
+      middleware.call rpc
+    end
+  end
+
   def test_counts_other_errors
     app = stub
     app.stubs(:call).with(rpc).raises(StandardError)
