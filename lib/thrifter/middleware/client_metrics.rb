@@ -28,6 +28,10 @@ module Thrifter
       statsd.increment 'rpc.error'
       statsd.increment 'rpc.error.timeout'
       raise ex
+    rescue Thrifter::RetryError  => ex
+      statsd.increment 'rpc.error'
+      statsd.increment 'rpc.error.retry'
+      raise ex
     rescue => ex
       statsd.increment 'rpc.error'
       statsd.increment 'rpc.error.other'

@@ -41,9 +41,11 @@ module Thrifter
           client.send name, *args
         rescue *retriable => ex
           if counter < tries
+            config.statsd.increment("rpc.#{name}.retry")
             sleep interval
             retry
           else
+            config.statsd.increment("rpc.#{name}.retry")
             raise RetryError.new(tries, name, ex)
           end
         end

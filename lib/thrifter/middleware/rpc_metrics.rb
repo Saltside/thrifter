@@ -77,6 +77,10 @@ module Thrifter
       statsd.increment "rpc.#{rpc.name}.error"
       statsd.increment "rpc.#{rpc.name}.error.timeout"
       raise ex
+    rescue Thrifter::RetryError => ex
+      statsd.increment "rpc.#{rpc.name}.error"
+      statsd.increment "rpc.#{rpc.name}.error.retry"
+      raise ex
     rescue => ex
       statsd.increment "rpc.#{rpc.name}.error"
       statsd.increment "rpc.#{rpc.name}.error.other"
