@@ -99,7 +99,11 @@ class AcceptanceTest < MiniTest::Unit::TestCase
       config.pool_timeout = 75
     end
 
-    ConnectionPool.expects(:new).with(size: 50, timeout: 75)
+    Thrifter::InstrumentedPool.expects(:new).with({
+      statsd: client.config.statsd,
+      size: 50,
+      timeout: 75
+    })
 
     client.new
   end
@@ -111,7 +115,11 @@ class AcceptanceTest < MiniTest::Unit::TestCase
       config.pool_timeout = '75.5'
     end
 
-    ConnectionPool.expects(:new).with(size: 50, timeout: 75.5)
+    Thrifter::InstrumentedPool.expects(:new).with({
+      statsd: client.config.statsd,
+      size: 50,
+      timeout: 75.5
+    })
 
     client.new
   end
