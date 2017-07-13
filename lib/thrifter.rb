@@ -33,6 +33,10 @@ module Thrifter
     def increment(*)
 
     end
+
+    def gauge(*)
+
+    end
   end
 
   RESERVED_METHODS = [
@@ -148,7 +152,7 @@ module Thrifter
         fail ArgumentError, 'URI did not contain port' unless @uri.port
       end
 
-      @pool = ConnectionPool.new size: config.pool_size.to_i, timeout: config.pool_timeout.to_f do
+      @pool = InstrumentedPool.new(statsd: config.statsd, size: config.pool_size.to_i, timeout: config.pool_timeout.to_f) do
         stack = MiddlewareStack.new
 
         stack.use config.stack
@@ -190,6 +194,8 @@ module Thrifter
     end
   end
 end
+
+require_relative 'thrifter/instrumented_pool'
 
 require_relative 'thrifter/extensions/ping'
 require_relative 'thrifter/extensions/retriable'

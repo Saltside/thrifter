@@ -20,7 +20,7 @@ $(THRIFT): test.thrift
 $(DOCKER_IMAGES):
 	mkdir -p $(@D)
 	touch $@
-		
+
 $(BUNDLE): Dockerfile thrifter.gemspec $(DOCKER_IMAGES)
 	docker build -t $(BUNDLE_IMAGE) .
 	docker inspect -f '{{ .Id }}' $(BUNDLE_IMAGE) >> $(DOCKER_IMAGES)
