@@ -28,6 +28,10 @@ class RetryTest < MiniTest::Unit::TestCase
     def time(*args)
       yield
     end
+
+    def gauge(*)
+
+    end
   end
 
   attr_reader :statsd
