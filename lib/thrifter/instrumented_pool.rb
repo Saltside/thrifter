@@ -8,6 +8,7 @@ module Thrifter
     end
 
     def checkout(*args)
+      statsd.gauge('thread_pool.size', @size)
       statsd.time('thread_pool.latency') do
         super.tap do |conn|
           statsd.increment('thread_pool.checkout')
@@ -15,7 +16,7 @@ module Thrifter
         end
       end
     rescue Timeout::Error => ex
-      statsd.increment('thead_pool.timeout')
+      statsd.increment('thread_pool.timeout')
       raise ex
     end
 

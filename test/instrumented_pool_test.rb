@@ -30,6 +30,19 @@ class InstrumentedPoolTest < MiniTest::Unit::TestCase
     end
   end
 
+  class TimeoutPool < Thrifter::InstrumentedPool
+    class FakeStack
+      def pop(*args)
+        raise Timeout::Error
+      end
+    end
+
+    def initialize(*args, &block)
+      super(*args) { :placeholder }
+      @available = FakeStack.new
+    end
+  end
+
   attr_reader :pool, :statsd
 
   def setup
@@ -45,13 +58,21 @@ class InstrumentedPoolTest < MiniTest::Unit::TestCase
     assert_equal :foo,  pool.checkout, 'Incorrect connection'
 
     latency = statsd.timers.first
+    assert latency
     assert_equal 'thread_pool.latency', latency
 
-    counter = statsd.counters.first
+    counter = statsd.counters[0]
+    assert counter
     assert_equal 'thread_pool.checkout', counter[0]
     assert_equal 1, counter[1]
 
-    in_use = statsd.gauges.first
+    size = statsd.gauges[0]
+    assert size
+    assert_equal 'thread_pool.size', size[0]
+    assert_equal 5, size[1]
+
+    in_use = statsd.gauges[1]
+    assert in_use
     assert_equal 'thread_pool.in_use', in_use[0]
     assert_equal 0.2, in_use[1]
   end
@@ -62,12 +83,35 @@ class InstrumentedPoolTest < MiniTest::Unit::TestCase
 
     pool.checkin
 
-    counter = statsd.counters.first
+    counter = statsd.counters[0]
+    assert counter
     assert_equal 'thread_pool.checkin', counter[0]
     assert_equal 1, counter[1]
 
     in_use = statsd.gauges.first
+    assert in_use
     assert_equal 'thread_pool.in_use', in_use[0]
     assert_equal 0.0, in_use[1]
+  end
+
+  def test_checkout_timeout_instrumentation
+    @pool = TimeoutPool.new({
+      statsd: statsd,
+      size: 5,
+      timeout: 5
+    })
+
+    assert_raises Timeout::Error do
+      pool.checkout
+    end
+
+    latency = statsd.timers.first
+    assert latency
+    assert_equal 'thread_pool.latency', latency
+
+    counter = statsd.counters.first
+    assert counter
+    assert_equal 'thread_pool.timeout', counter[0]
+    assert_equal 1, counter[1]
   end
 end
