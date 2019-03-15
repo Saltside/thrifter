@@ -10,7 +10,7 @@ require 'test_service'
 require 'sidekiq'
 require 'sidekiq/testing'
 require 'minitest/autorun'
-require 'mocha/mini_test'
+require 'mocha/minitest'
 
 Sidekiq::Testing.fake!
 
