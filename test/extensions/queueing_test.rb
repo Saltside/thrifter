@@ -68,7 +68,6 @@ class QueuingTest < MiniTest::Unit::TestCase
 
   def test_fails_if_given_unknown_method
     client = QueuedClient.new
-    message = TestMessage.new message: 'echo'
 
     assert_raises NoMethodError do
       client.queued.foo
