@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class ValidationTest < MiniTest::Unit::TestCase
+class ValidationTest < Minitest::Test
   attr_reader :rpc, :invalid_struct, :valid_struct
 
   def setup

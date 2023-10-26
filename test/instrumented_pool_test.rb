@@ -1,6 +1,6 @@
 require_relative 'test_helper'
 
-class InstrumentedPoolTest < MiniTest::Unit::TestCase
+class InstrumentedPoolTest < Minitest::Test
   class TestStatsd
     attr_reader :timers, :gauges, :counters
 

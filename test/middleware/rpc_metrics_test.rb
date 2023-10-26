@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class RpcMetricsTest < MiniTest::Unit::TestCase
+class RpcMetricsTest < Minitest::Test
   attr_reader :rpc
 
   def setup

@@ -1,4 +1,4 @@
-FROM ruby:2.1
+FROM ruby:2.6
 
 RUN mkdir -p /app/lib/thrifter
 

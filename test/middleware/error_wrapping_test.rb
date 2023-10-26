@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class ErrorWrappingTest < MiniTest::Unit::TestCase
+class ErrorWrappingTest < Minitest::Test
   TestError = Class.new StandardError
 
   attr_reader :rpc
