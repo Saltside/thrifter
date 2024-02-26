@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class RetryTest < MiniTest::Unit::TestCase
+class RetryTest < Minitest::Test
   JunkError = Class.new StandardError
   KnownError = Class.new StandardError
 

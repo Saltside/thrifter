@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class PingTest < MiniTest::Unit::TestCase
+class PingTest < Minitest::Test
   def test_returns_false_if_anything_goes_wrong
     down_class = Class.new do
       include Thrifter::Ping

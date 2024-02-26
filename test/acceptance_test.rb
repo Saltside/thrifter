@@ -1,6 +1,6 @@
 require_relative 'test_helper'
 
-class AcceptanceTest < MiniTest::Unit::TestCase
+class AcceptanceTest < Minitest::Test
   SimulatedError = Class.new StandardError
 
   class TestClient < TestService::Client

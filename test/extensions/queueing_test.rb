@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class QueuingTest < MiniTest::Unit::TestCase
+class QueuingTest < Minitest::Test
   class TestClient < TestService::Client
     def echo(message)
       message
