@@ -1,7 +1,7 @@
 # Thrifter
 
 Thrifter addresses the shortcoming in the official library for
-production uses. It's most important features are:
+production uses. Its most important features are:
 
 * Thread safe via connection pool
 * Safe for use in long running processes
@@ -90,7 +90,7 @@ end
 
 ### Extensions
 
-Extensions add functionality to the client itself. They do not effect
+Extensions add functionality to the client itself. They do not affect
 the request/response cycle in anyway. `Thrifter` includes a few
 extensions by default. This section covers each included extension.
 
@@ -99,11 +99,11 @@ extensions by default. This section covers each included extension.
 Certain systems may need to queue RPCs to other systems. This is only
 useful for `void` RPCs or for when an outside system may be flaky.
 Assume `MyService` has a `logStats` RPC. Your application is producing
-stats that should make it upstream, but there are intermitent network
-problems effeciting stats collection. Include `Thrift::Queueing` and
+stats that should make it upstream, but there are intermittent network
+problems affecting stats collection. Include `Thrift::Queueing` and
 any RPC will automatically be sent to sidekiq for eventual processing.
 `sidekiq` must be available. This is an **opt-in** dependency, of if
-you want this funtionality, add `sidekiq` and
+you want this functionality, add `sidekiq` and
 `sidekiq-thrift_arguments` to your `Gemfile`.
 
 ```ruby
@@ -134,7 +134,7 @@ default sidekiq retry backoff and the like.
 
 #### Retry Support
 
-Systems have syncrhonous RPCs. Unfortunately sometimes these don't
+Systems have synchronous RPCs. Unfortunately sometimes these don't
 work for whatever reason. It's good practice to retry these RPCs
 (within certain limits) if they don't succeed the first time.
 `Thrift::Retriable` is perfect for this use case.
@@ -195,7 +195,7 @@ points to hook into the RPC process. `Thrifter::Client` provides a
 middleware implementation to common to many other ruby libraries.
 Unlike extensions, middleware modify the request/response cycle. They
 do not modify the client class directly. `Thrifter` includes a few
-helpful middlware which are documented below.
+helpful middleware which are documented below.
 
 #### Using Middleware
 
@@ -217,7 +217,7 @@ middleware should be configured directly in the class itself.
 
 A middleware must implement the `call` method and accept at least one
 argument to `initialize`. The `call` method recieves a `Thrifter::RPC`.
-`Thrifter::RPC` is a sipmle struct with a `name` and `args` methods.
+`Thrifter::RPC` is a simple struct with `name` and `args` methods.
 Here's an example:
 
 ```ruby
@@ -262,11 +262,11 @@ ServiceClient.config.statsd = Statsd.new namespace: 'my_service'
 A lot of things can go wrong in the thrift stack. This means the
 caller may need to deal with a large amount of different exceptions.
 For example, does it really matter if `Thrift::ProtocolException` or
-`Thrift::TransportException` was raied? Can the caller recover from
+`Thrift::TransportException` was raised? Can the caller recover from
 either of them? No. So instead of allowing these semantics to
 propogate up abstraction levels, it's better to encapsulate them in a
 single error. This is easily implemented with a middleware and once is
-included in the library. When this middleare is used, all known
+included in the library. When this middleware is used, all known
 networking & thrift exceptions will be raised as
 `Thrifter::ClientError`.
 
@@ -316,3 +316,4 @@ end
 
 [retriable]: https://github.com/kamui/retriable
 [statsd-ruby]: https://github.com/reinh/statsd
+[thrift-validator]: https://github.com/Saltside/thrift-validator-ruby
