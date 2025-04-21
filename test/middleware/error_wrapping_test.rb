@@ -64,7 +64,7 @@ class ErrorWrappingTest < Minitest::Test
   end
 
   def test_wraps_timeout_error
-    assert_includes known_errors, TimeoutError
+    assert_includes known_errors, Timeout::Error
   end
 
   def test_wraps_system_call_error
