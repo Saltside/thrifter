@@ -10,6 +10,7 @@ require 'thrift-base64'
 require 'thrift-validator'
 require 'middleware'
 require 'connection_pool'
+require 'timeout'
 
 module Thrifter
   ClientError = Tnt.boom do |ex|

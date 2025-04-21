@@ -1,4 +1,6 @@
-FROM ruby:2.6
+FROM ruby:3.4.3-bullseye
+
+RUN apt-get update && apt-get install -y build-essential
 
 RUN mkdir -p /app/lib/thrifter
 

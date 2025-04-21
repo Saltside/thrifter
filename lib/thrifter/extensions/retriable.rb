@@ -37,8 +37,8 @@ module Thrifter
         counter = 0
 
         begin
-          counter = counter + 1
-          client.send name, *args
+          counter += 1
+          client.send(name, *args)
         rescue *retriable => ex
           if counter < tries
             config.statsd.increment("rpc.#{name}.retry")
@@ -52,10 +52,13 @@ module Thrifter
       end
     end
 
-    def with_retry(tries: 5, interval: 0.01, retriable: [ ])
-      proxy = Proxy.new self, tries, interval, retriable
-      yield proxy if block_given?
-      proxy
+    def with_retry(tries: 5, interval: 0.01, retriable: [])
+      proxy = Proxy.new(self, tries, interval, retriable)
+      if block_given?
+        yield proxy
+      else
+        proxy
+      end
     end
   end
 end

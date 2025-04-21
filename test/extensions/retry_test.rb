@@ -8,9 +8,6 @@ class RetryTest < Minitest::Test
     include Thrifter::Retry
 
     config.uri = 'tcp://localhost:9090'
-
-    # This is enough to get around thrift's networking objects and focus
-    # on stubbing the actual thrift client.
     config.transport = FakeTransport
   end
 
@@ -18,7 +15,7 @@ class RetryTest < Minitest::Test
     attr_reader :counters
 
     def initialize
-      @counters = [ ]
+      @counters = []
     end
 
     def increment(counter)
@@ -30,7 +27,6 @@ class RetryTest < Minitest::Test
     end
 
     def gauge(*)
-
     end
   end
 
@@ -57,7 +53,7 @@ class RetryTest < Minitest::Test
     client = RetryClient.new
 
     assert_raises JunkError do
-      client.with_retry({ tries: 2, interval: 0.01 }).echo(:request)
+      client.with_retry(tries: 2, interval: 0.01).echo(:request)
     end
   end
 
@@ -70,14 +66,11 @@ class RetryTest < Minitest::Test
 
     client = RetryClient.new
 
-    result = client.with_retry({ tries: 2, interval: 0.01 }).echo(:request)
+    result = client.with_retry(tries: 2, interval: 0.01).echo(:request)
 
-    assert :response == result, 'return value incorrect'
+    assert_equal :response, result, 'return value incorrect'
 
-    counters = statsd.counters.count do |item|
-      item == 'rpc.echo.retry'
-    end
-
+    counters = statsd.counters.count { |item| item == 'rpc.echo.retry' }
     assert_equal 1, counters, 'Retry not counted'
   end
 
@@ -90,9 +83,9 @@ class RetryTest < Minitest::Test
 
     client = RetryClient.new
 
-    result = client.with_retry({ tries: 2, interval: 0.01, retriable: KnownError }).echo(:request)
+    result = client.with_retry(tries: 2, interval: 0.01, retriable: KnownError).echo(:request)
 
-    assert :response == result, 'return value incorrect'
+    assert_equal :response, result, 'return value incorrect'
   end
 
   def test_retries_on_exceptions_specified_in_array
@@ -104,9 +97,9 @@ class RetryTest < Minitest::Test
 
     client = RetryClient.new
 
-    result = client.with_retry({ tries: 2, interval: 0.01, retriable: [ KnownError ] }).echo(:request)
+    result = client.with_retry(tries: 2, interval: 0.01, retriable: [KnownError]).echo(:request)
 
-    assert :response == result, 'return value incorrect'
+    assert_equal :response, result, 'return value incorrect'
   end
 
   def test_fails_if_does_not_respond_successfully
@@ -119,17 +112,14 @@ class RetryTest < Minitest::Test
     client = RetryClient.new
 
     error = assert_raises Thrifter::RetryError do
-      client.with_retry({ tries: 5, interval: 0.01 }).echo(:request)
+      client.with_retry(tries: 5, interval: 0.01).echo(:request)
     end
 
-    assert_match /5/, error.message, 'Error not descriptive'
-    assert_match /echo/, error.message, 'Error not descriptive'
-    assert_match /#{err.to_s}/, error.message, 'Missing error details'
+    assert_match(/5/, error.message, 'Error not descriptive')
+    assert_match(/echo/, error.message, 'Error not descriptive')
+    assert_match(/#{err}/, error.message, 'Missing error details')
 
-    counters = statsd.counters.count do |item|
-      item == 'rpc.echo.retry'
-    end
-
+    counters = statsd.counters.count { |item| item == 'rpc.echo.retry' }
     assert_equal 5, counters, 'Retry not counted'
   end
 
@@ -180,9 +170,11 @@ class RetryTest < Minitest::Test
 
     client = RetryClient.new
 
-    client.with_retry do |with_retry|
-      with_retry.echo :request
+    result = client.with_retry do |with_retry|
+      with_retry.echo(:request)
     end
+
+    assert_equal :response, result
   end
 
   def test_fails_if_given_rpc_name
